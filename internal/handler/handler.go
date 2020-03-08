@@ -2,7 +2,7 @@ package handler
 
 import (
 	"net/http"
-	"syla"
+	"github.com/PedroRibeiro95/syla"
 )
 
 // ProviderHandler ...

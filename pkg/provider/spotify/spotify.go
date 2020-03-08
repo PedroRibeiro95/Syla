@@ -1,7 +1,21 @@
 package spotify
 
-import "syla"
+import (
+	"github.com/PedroRibeiro95/syla"
+	"github.com/PedroRibeiro95/syla/pkg/provider"
+)
 
+// FavoriteAlbumsInformation ...
+type FavoriteAlbumsInformation struct {
+	Name string
+}
+
+// MarshalToJSON ...
+func (inf FavoriteAlbumsInformation) MarshalToJSON() ([]byte, error) {
+	return provider.MarshalToJSON(inf)
+}
+
+// Provider ...
 type Provider struct {
 	ClientID    string
 	SecretKey   string
@@ -11,6 +25,7 @@ type Provider struct {
 // Type checking this provider
 var _ syla.Provider = Provider{}
 
+// New ...
 func New(ClientID, SecretKey, RedirectURL string) *Provider {
 	return &Provider{
 		ClientID:    ClientID,
@@ -19,6 +34,9 @@ func New(ClientID, SecretKey, RedirectURL string) *Provider {
 	}
 }
 
-func (p *Provider) Test() string {
-	return "Successful test!"
+// GetFavoriteAlbums ...
+func (p *Provider) GetFavoriteAlbums() (syla.FavoriteAlbumsInformation, error) {
+	return FavoriteAlbumsInformation{
+		Name: "Test!",
+	}, nil
 }

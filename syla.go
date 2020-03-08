@@ -1,13 +1,16 @@
 package syla
 
+// FavoriteAlbumsInformation ...
 type FavoriteAlbumsInformation interface {
-	Test() string
+	MarshalToJSON() string
 }
 
+// FavoriteArtistsInformation ...
 type FavoriteArtistsInformation interface {
-	Test() string
+	MarshalToJSON() string
 }
 
+// Provider ...
 type Provider interface {
 	GetFavoriteAlbums() (FavoriteAlbumsInformation, error)
 	GetFavoriteArtists() (FavoriteArtistsInformation, error)

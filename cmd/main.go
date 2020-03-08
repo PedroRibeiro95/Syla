@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"syla/handler"
-	"syla/spotify"
+	"github.com/PedroRibeiro95/syla/internal/handler"
+	"github.com/PedroRibeiro95/syla/pkg/provider/spotify"
 )
 
 func test(w http.ResponseWriter, r *http.Request) {
