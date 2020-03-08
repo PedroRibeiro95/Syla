@@ -10,8 +10,18 @@ type FavoriteAlbumsInformation struct {
 	Name string
 }
 
+// FavoriteArtistsInformation ...
+type FavoriteArtistsInformation struct {
+	Name string
+}
+
 // MarshalToJSON ...
 func (inf FavoriteAlbumsInformation) MarshalToJSON() ([]byte, error) {
+	return provider.MarshalToJSON(inf)
+}
+
+// MarshalToJSON ...
+func (inf FavoriteArtistsInformation) MarshalToJSON() ([]byte, error) {
 	return provider.MarshalToJSON(inf)
 }
 
@@ -23,7 +33,7 @@ type Provider struct {
 }
 
 // Type checking this provider
-var _ syla.Provider = Provider{}
+var _ syla.Provider = &Provider{}
 
 // New ...
 func New(ClientID, SecretKey, RedirectURL string) *Provider {
@@ -37,6 +47,13 @@ func New(ClientID, SecretKey, RedirectURL string) *Provider {
 // GetFavoriteAlbums ...
 func (p *Provider) GetFavoriteAlbums() (syla.FavoriteAlbumsInformation, error) {
 	return FavoriteAlbumsInformation{
+		Name: "Test!",
+	}, nil
+}
+
+// GetFavoriteArtists ...
+func (p *Provider) GetFavoriteArtists() (syla.FavoriteArtistsInformation, error) {
+	return FavoriteArtistsInformation{
 		Name: "Test!",
 	}, nil
 }

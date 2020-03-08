@@ -2,12 +2,12 @@ package syla
 
 // FavoriteAlbumsInformation ...
 type FavoriteAlbumsInformation interface {
-	MarshalToJSON() string
+	MarshalToJSON() ([]byte, error)
 }
 
 // FavoriteArtistsInformation ...
 type FavoriteArtistsInformation interface {
-	MarshalToJSON() string
+	MarshalToJSON() ([]byte, error)
 }
 
 // Provider ...
