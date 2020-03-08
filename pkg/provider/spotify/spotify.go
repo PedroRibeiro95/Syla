@@ -1,10 +1,13 @@
 package spotify
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/PedroRibeiro95/syla"
 	"github.com/PedroRibeiro95/syla/pkg/provider"
+	"github.com/zmb3/spotify"
 )
 
 // AlbumInformation ...
@@ -33,21 +36,44 @@ func (inf ArtistInformation) MarshalToJSON() ([]byte, error) {
 
 // Provider ...
 type Provider struct {
-	ClientID    string
-	SecretKey   string
-	RedirectURL string
+	ClientID      string
+	SecretKey     string
+	RedirectURL   string
+	Authenticator spotify.Authenticator
+	URL           string
+	Client        spotify.Client
 }
 
 // Type checking this provider
 var _ syla.Provider = &Provider{}
 
 // New ...
-func New(ClientID, SecretKey, RedirectURL string) *Provider {
+func New(clientid, secretkey, redirecturl string) *Provider {
+	auth := spotify.NewAuthenticator(redirecturl, spotify.ScopeUserTopRead)
+	auth.SetAuthInfo(clientid, secretkey)
+
+	url := auth.AuthURL("test")
+
 	return &Provider{
-		ClientID:    ClientID,
-		SecretKey:   SecretKey,
-		RedirectURL: RedirectURL,
+		ClientID:      clientid,
+		SecretKey:     secretkey,
+		RedirectURL:   redirecturl,
+		Authenticator: auth,
+		URL:           url,
 	}
+}
+
+// InstantiateClient ...
+func (p *Provider) InstantiateClient(r *http.Request) {
+	// use the same state string here that you used to generate the URL
+	token, err := p.Authenticator.Token("test", r)
+	if err != nil {
+		fmt.Println("Error!")
+	}
+	// create a client using the specified token
+	p.Client = p.Authenticator.NewClient(token)
+
+	// the client can now be used to make authenticated requests
 }
 
 // GetFavoriteAlbums ...

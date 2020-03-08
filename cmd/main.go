@@ -9,18 +9,30 @@ import (
 	"github.com/PedroRibeiro95/syla/pkg/provider/spotify"
 )
 
-func test(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "This is a test of HTTP Handlers: %s", r.URL.Path)
-}
-
 func main() {
-	spotifyProvider := spotify.New("clientid", "secretkey", "redirecturl")
+	spotifyProvider := spotify.New("clientid", "secretkey", "http://localhost:8080/auth")
 	spotifyHandler := handler.New(spotifyProvider)
 
-	// Register API handlers
-	http.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
-	http.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
+	spotifyAuthHandler := handler.SpotifyAuthHandler{}
 
-	// Listens indefinetly
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	fmt.Println(spotifyProvider.URL)
+
+	go func() {
+		// Registers Spotify Authenticator handler
+		http.Handle("/auth", &spotifyAuthHandler)
+
+		// Register API handlers
+		http.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
+		http.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
+
+		// Listens indefinetly
+		fmt.Println("Listening on 8080...")
+		log.Fatal(http.ListenAndServe(":8080", nil))
+	}()
+
+	// Waits for the callback...
+	for spotifyAuthHandler.Request == nil {
+	}
+
+	spotifyProvider.InstantiateClient(spotifyAuthHandler.Request)
 }

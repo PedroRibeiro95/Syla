@@ -17,6 +17,13 @@ type GenericProviderHandler struct {
 	Provider *syla.Provider
 }
 
+// SpotifyAuthHandler ...
+type SpotifyAuthHandler struct {
+	Request *http.Request
+}
+
+var _ http.Handler = &SpotifyAuthHandler{}
+
 // Verifies that GenericProviderHandler implements the ProviderHandler interface
 var _ ProviderHandler = &GenericProviderHandler{}
 
@@ -67,4 +74,9 @@ func (ph *GenericProviderHandler) GetFavoriteArtistsAPI() http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResp)
 	}
+}
+
+// ServeHTTP ...
+func (sh *SpotifyAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	sh.Request = r
 }
