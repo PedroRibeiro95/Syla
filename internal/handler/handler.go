@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/PedroRibeiro95/syla"
@@ -34,24 +36,34 @@ func New(p syla.Provider) *GenericProviderHandler {
 	}
 }
 
+// MarshalToJSON ...
+func MarshalToJSON(i interface{}) ([]byte, error) {
+	jsonMarshalled, err := json.Marshal(i)
+	if err != nil {
+		return []byte{}, err
+	}
+	return jsonMarshalled, nil
+}
+
 // GetFavoriteAlbumsAPI ...
 func (ph *GenericProviderHandler) GetFavoriteAlbumsAPI() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		//No checks at this point
-		resp, err := (*ph.Provider).GetFavoriteAlbums()
+		response, err := (*ph.Provider).GetFavoriteAlbums()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
-		jsonResp, err := resp.MarshalToJSON()
+		jsonResponse, err := MarshalToJSON(response)
 		if err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Println("Hory shet, an error!")
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(jsonResp)
+		w.Write(jsonResponse)
 	}
 }
 
@@ -61,18 +73,19 @@ func (ph *GenericProviderHandler) GetFavoriteArtistsAPI() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		//No checks at this point
-		resp, err := (*ph.Provider).GetFavoriteArtists()
+		response, err := (*ph.Provider).GetFavoriteArtists()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
 
-		jsonResp, err := resp.MarshalToJSON()
+		jsonResponse, err := MarshalToJSON(response)
 		if err != nil {
-			w.WriteHeader(http.StatusServiceUnavailable)
+			fmt.Println("Hory shet, an error!")
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write(jsonResp)
+		w.Write(jsonResponse)
 	}
 }
 

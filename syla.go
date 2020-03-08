@@ -12,6 +12,6 @@ type ArtistInformation interface {
 
 // Provider ...
 type Provider interface {
-	GetFavoriteAlbums() (AlbumInformation, error)
-	GetFavoriteArtists() (ArtistInformation, error)
+	GetFavoriteAlbums() ([]AlbumInformation, error)
+	GetFavoriteArtists() ([]ArtistInformation, error)
 }

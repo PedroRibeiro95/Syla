@@ -18,21 +18,23 @@ func main() {
 	fmt.Println(spotifyProvider.URL)
 
 	go func() {
-		// Registers Spotify Authenticator handler
-		http.Handle("/auth", &spotifyAuthHandler)
+		// Waits for the authentication callback...
+		for spotifyAuthHandler.Request == nil {
+		}
 
-		// Register API handlers
-		http.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
-		http.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
-
-		// Listens indefinetly
-		fmt.Println("Listening on 8080...")
-		log.Fatal(http.ListenAndServe(":8080", nil))
+		fmt.Println("Callback received")
+		spotifyProvider.InstantiateClient(spotifyAuthHandler.Request)
+		fmt.Println("Spotify client instantiated!")
 	}()
 
-	// Waits for the callback...
-	for spotifyAuthHandler.Request == nil {
-	}
+	// Registers Spotify Authenticator handler
+	http.Handle("/auth", &spotifyAuthHandler)
 
-	spotifyProvider.InstantiateClient(spotifyAuthHandler.Request)
+	// Register API handlers
+	http.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
+	http.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
+
+	// Listens indefinetly
+	fmt.Println("Listening on 8080...")
+	log.Fatal(http.ListenAndServe(":8080", nil))
 }

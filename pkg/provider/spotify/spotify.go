@@ -3,7 +3,6 @@ package spotify
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/PedroRibeiro95/syla"
 	"github.com/PedroRibeiro95/syla/pkg/provider"
@@ -13,15 +12,18 @@ import (
 // AlbumInformation ...
 type AlbumInformation struct {
 	Name        string
-	Artist      string
-	ReleaseDate time.Time
-	Length      int
+	Artists     []string
+	ReleaseDate string
+	URLs        map[string]string
+	Genres      []string
 }
 
 // ArtistInformation ...
 type ArtistInformation struct {
-	Name   string
-	Albums []AlbumInformation
+	Name           string
+	Popularity     int
+	Genres         []string
+	FollowersCount uint
 }
 
 // MarshalToJSON ...
@@ -49,7 +51,7 @@ var _ syla.Provider = &Provider{}
 
 // New ...
 func New(clientid, secretkey, redirecturl string) *Provider {
-	auth := spotify.NewAuthenticator(redirecturl, spotify.ScopeUserTopRead)
+	auth := spotify.NewAuthenticator(redirecturl, spotify.ScopeUserTopRead, spotify.ScopeUserFollowRead, spotify.ScopeUserLibraryRead)
 	auth.SetAuthInfo(clientid, secretkey)
 
 	url := auth.AuthURL("test")
@@ -77,35 +79,64 @@ func (p *Provider) InstantiateClient(r *http.Request) {
 }
 
 // GetFavoriteAlbums ...
-func (p *Provider) GetFavoriteAlbums() (syla.AlbumInformation, error) {
-	return AlbumInformation{
-		Name:        "pom pom",
-		Artist:      "Ariel Pink",
-		ReleaseDate: time.Now(),
-		Length:      72,
-	}, nil
+// TODO verify that the client has been instantiated
+// TODO understand pagination
+func (p *Provider) GetFavoriteAlbums() ([]syla.AlbumInformation, error) {
+
+	var favoriteAlbumsResponse []syla.AlbumInformation
+
+	albumsList, err := p.Client.CurrentUsersAlbums()
+	if err != nil {
+		fmt.Println("Oh my god! Error!")
+		fmt.Println(err)
+		return []syla.AlbumInformation{}, nil
+	}
+
+	for albumsList.Next != "" {
+		for _, album := range albumsList.Albums {
+			albumInformation := AlbumInformation{
+				Name:        album.Name,
+				ReleaseDate: album.ReleaseDate,
+				URLs:        album.ExternalURLs,
+				Genres:      album.Genres,
+			}
+
+			var artists []string
+			for _, artist := range album.Artists {
+				artists = append(artists, artist.Name)
+			}
+			albumInformation.Artists = artists
+
+			favoriteAlbumsResponse = append(favoriteAlbumsResponse, albumInformation)
+		}
+	}
+
+	return favoriteAlbumsResponse, nil
 }
 
 // GetFavoriteArtists ...
-func (p *Provider) GetFavoriteArtists() (syla.ArtistInformation, error) {
-	var albumsList []AlbumInformation
+func (p *Provider) GetFavoriteArtists() ([]syla.ArtistInformation, error) {
+	var favoriteArtistsResponse []syla.ArtistInformation
 
-	albumsList = append(albumsList, AlbumInformation{
-		Name:        "pom pom",
-		Artist:      "Ariel Pink",
-		ReleaseDate: time.Now(),
-		Length:      72,
-	})
+	followedArtists, err := p.Client.CurrentUsersFollowedArtists()
+	if err != nil {
+		fmt.Println("Oh my god! Error!")
+		return []syla.ArtistInformation{}, nil
+	}
 
-	albumsList = append(albumsList, AlbumInformation{
-		Name:        "Dedicated to Bobby Jameson",
-		Artist:      "Ariel Pink",
-		ReleaseDate: time.Now(),
-		Length:      66,
-	})
+	for followedArtists.Next != "" {
+		for _, artist := range followedArtists.Artists {
+			artistInformation := ArtistInformation{
+				Name:           artist.Name,
+				Popularity:     artist.Popularity,
+				Genres:         artist.Genres,
+				FollowersCount: artist.Followers.Count,
+			}
 
-	return ArtistInformation{
-		Name:   "Ariel Pink",
-		Albums: albumsList,
-	}, nil
+			favoriteArtistsResponse = append(favoriteArtistsResponse, artistInformation)
+		}
+
+	}
+
+	return favoriteArtistsResponse, nil
 }
