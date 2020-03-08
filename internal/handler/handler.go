@@ -18,9 +18,9 @@ type GenericProviderHandler struct {
 }
 
 // New ...
-func New(p *syla.Provider) *GenericProviderHandler {
+func New(p syla.Provider) *GenericProviderHandler {
 	return &GenericProviderHandler{
-		Provider: p,
+		Provider: &p,
 	}
 }
 
@@ -30,7 +30,7 @@ func (ph *GenericProviderHandler) GetFavoriteAlbums() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		//No checks at this point
-		resp, err := ph.Provider.GetFavoriteAlbums()
+		resp, err := (*ph.Provider).GetFavoriteAlbums()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}

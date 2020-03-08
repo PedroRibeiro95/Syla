@@ -14,10 +14,8 @@ func test(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	//http.HandleFunc("/", test)
-
 	spotifyProvider := spotify.New("clientid", "secretkey", "redirecturl")
-	spotifyHandler := handler.GenericProviderHandler(spotifyProvider)
+	spotifyHandler := handler.New(spotifyProvider)
 
 	http.HandleFunc("/spotify/favalbums", spotifyHandler.GetFavoriteAlbums())
 
