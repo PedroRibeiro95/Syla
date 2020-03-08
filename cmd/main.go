@@ -17,7 +17,9 @@ func main() {
 	spotifyProvider := spotify.New("clientid", "secretkey", "redirecturl")
 	spotifyHandler := handler.New(spotifyProvider)
 
-	http.HandleFunc("/spotify/favalbums", spotifyHandler.GetFavoriteAlbums())
+	// Register API handlers
+	http.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
+	http.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
 
 	// Listens indefinetly
 	log.Fatal(http.ListenAndServe(":8080", nil))

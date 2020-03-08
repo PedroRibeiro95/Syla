@@ -1,27 +1,33 @@
 package spotify
 
 import (
+	"time"
+
 	"github.com/PedroRibeiro95/syla"
 	"github.com/PedroRibeiro95/syla/pkg/provider"
 )
 
-// FavoriteAlbumsInformation ...
-type FavoriteAlbumsInformation struct {
-	Name string
+// AlbumInformation ...
+type AlbumInformation struct {
+	Name        string
+	Artist      string
+	ReleaseDate time.Time
+	Length      int
 }
 
-// FavoriteArtistsInformation ...
-type FavoriteArtistsInformation struct {
-	Name string
+// ArtistInformation ...
+type ArtistInformation struct {
+	Name   string
+	Albums []AlbumInformation
 }
 
 // MarshalToJSON ...
-func (inf FavoriteAlbumsInformation) MarshalToJSON() ([]byte, error) {
+func (inf AlbumInformation) MarshalToJSON() ([]byte, error) {
 	return provider.MarshalToJSON(inf)
 }
 
 // MarshalToJSON ...
-func (inf FavoriteArtistsInformation) MarshalToJSON() ([]byte, error) {
+func (inf ArtistInformation) MarshalToJSON() ([]byte, error) {
 	return provider.MarshalToJSON(inf)
 }
 
@@ -45,15 +51,35 @@ func New(ClientID, SecretKey, RedirectURL string) *Provider {
 }
 
 // GetFavoriteAlbums ...
-func (p *Provider) GetFavoriteAlbums() (syla.FavoriteAlbumsInformation, error) {
-	return FavoriteAlbumsInformation{
-		Name: "Test!",
+func (p *Provider) GetFavoriteAlbums() (syla.AlbumInformation, error) {
+	return AlbumInformation{
+		Name:        "pom pom",
+		Artist:      "Ariel Pink",
+		ReleaseDate: time.Now(),
+		Length:      72,
 	}, nil
 }
 
 // GetFavoriteArtists ...
-func (p *Provider) GetFavoriteArtists() (syla.FavoriteArtistsInformation, error) {
-	return FavoriteArtistsInformation{
-		Name: "Test!",
+func (p *Provider) GetFavoriteArtists() (syla.ArtistInformation, error) {
+	var albumsList []AlbumInformation
+
+	albumsList = append(albumsList, AlbumInformation{
+		Name:        "pom pom",
+		Artist:      "Ariel Pink",
+		ReleaseDate: time.Now(),
+		Length:      72,
+	})
+
+	albumsList = append(albumsList, AlbumInformation{
+		Name:        "Dedicated to Bobby Jameson",
+		Artist:      "Ariel Pink",
+		ReleaseDate: time.Now(),
+		Length:      66,
+	})
+
+	return ArtistInformation{
+		Name:   "Ariel Pink",
+		Albums: albumsList,
 	}, nil
 }

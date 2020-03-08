@@ -8,14 +8,17 @@ import (
 
 // ProviderHandler ...
 type ProviderHandler interface {
-	GetFavoriteAlbums() http.HandlerFunc
-	GetFavoriteArtits() http.HandlerFunc
+	GetFavoriteAlbumsAPI() http.HandlerFunc
+	GetFavoriteArtistsAPI() http.HandlerFunc
 }
 
 // GenericProviderHandler ...
 type GenericProviderHandler struct {
 	Provider *syla.Provider
 }
+
+// Verifies that GenericProviderHandler implements the ProviderHandler interface
+var _ ProviderHandler = &GenericProviderHandler{}
 
 // New ...
 func New(p syla.Provider) *GenericProviderHandler {
@@ -24,13 +27,34 @@ func New(p syla.Provider) *GenericProviderHandler {
 	}
 }
 
-// GetFavoriteAlbums ...
-func (ph *GenericProviderHandler) GetFavoriteAlbums() http.HandlerFunc {
+// GetFavoriteAlbumsAPI ...
+func (ph *GenericProviderHandler) GetFavoriteAlbumsAPI() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		//No checks at this point
 		resp, err := (*ph.Provider).GetFavoriteAlbums()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+
+		jsonResp, err := resp.MarshalToJSON()
+		if err != nil {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(jsonResp)
+	}
+}
+
+// GetFavoriteArtistsAPI ...
+func (ph *GenericProviderHandler) GetFavoriteArtistsAPI() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+		//No checks at this point
+		resp, err := (*ph.Provider).GetFavoriteArtists()
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
