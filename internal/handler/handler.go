@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/PedroRibeiro95/syla"
+	log "github.com/sirupsen/logrus"
 )
 
 // ProviderHandler ...
@@ -50,6 +51,7 @@ func (ph *GenericProviderHandler) GetFavoriteAlbumsAPI() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+		log.Info("Getting request for Favorite Albums")
 		//No checks at this point
 		response, err := (*ph.Provider).GetFavoriteAlbums()
 		if err != nil {
@@ -61,7 +63,6 @@ func (ph *GenericProviderHandler) GetFavoriteAlbumsAPI() http.HandlerFunc {
 			fmt.Println("Hory shet, an error!")
 			w.WriteHeader(http.StatusInternalServerError)
 		}
-
 		w.WriteHeader(http.StatusOK)
 		w.Write(jsonResponse)
 	}
@@ -72,6 +73,7 @@ func (ph *GenericProviderHandler) GetFavoriteArtistsAPI() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+		log.Info("Getting request for Favorite Artists")
 		//No checks at this point
 		response, err := (*ph.Provider).GetFavoriteArtists()
 		if err != nil {

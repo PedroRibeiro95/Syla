@@ -6,6 +6,7 @@ import (
 
 	"github.com/PedroRibeiro95/syla"
 	"github.com/PedroRibeiro95/syla/pkg/provider"
+	log "github.com/sirupsen/logrus"
 	"github.com/zmb3/spotify"
 )
 
@@ -38,12 +39,10 @@ func (inf ArtistInformation) MarshalToJSON() ([]byte, error) {
 
 // Provider ...
 type Provider struct {
-	ClientID      string
-	SecretKey     string
-	RedirectURL   string
 	Authenticator spotify.Authenticator
 	URL           string
 	Client        spotify.Client
+	Read          bool
 }
 
 // Type checking this provider
@@ -51,30 +50,26 @@ var _ syla.Provider = &Provider{}
 
 // New ...
 func New(clientid, secretkey, redirecturl string) *Provider {
-	auth := spotify.NewAuthenticator(redirecturl, spotify.ScopeUserTopRead, spotify.ScopeUserFollowRead, spotify.ScopeUserLibraryRead)
-	auth.SetAuthInfo(clientid, secretkey)
+	p := Provider{}
 
-	url := auth.AuthURL("test")
+	p.Authenticator = spotify.NewAuthenticator(redirecturl, spotify.ScopeUserTopRead, spotify.ScopeUserFollowRead, spotify.ScopeUserLibraryRead)
+	p.Authenticator.SetAuthInfo(clientid, secretkey)
+	p.URL = p.Authenticator.AuthURL("syla")
 
-	return &Provider{
-		ClientID:      clientid,
-		SecretKey:     secretkey,
-		RedirectURL:   redirecturl,
-		Authenticator: auth,
-		URL:           url,
-	}
+	return &p
 }
 
 // InstantiateClient ...
 func (p *Provider) InstantiateClient(r *http.Request) {
+	log.Info("Got callback!")
 	// use the same state string here that you used to generate the URL
-	token, err := p.Authenticator.Token("test", r)
+	token, err := p.Authenticator.Token("syla", r)
 	if err != nil {
 		fmt.Println("Error!")
 	}
+	log.Debug("Got token from request")
 	// create a client using the specified token
 	p.Client = p.Authenticator.NewClient(token)
-
 	// the client can now be used to make authenticated requests
 }
 
@@ -87,7 +82,7 @@ func (p *Provider) GetFavoriteAlbums() ([]syla.AlbumInformation, error) {
 
 	albumsList, err := p.Client.CurrentUsersAlbums()
 	if err != nil {
-		fmt.Println("Oh my god! Error!")
+		log.Error("Oh my god! Error!")
 		fmt.Println(err)
 		return []syla.AlbumInformation{}, nil
 	}
