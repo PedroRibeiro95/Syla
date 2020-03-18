@@ -16,8 +16,10 @@ import (
 )
 
 func main() {
+	// Parses the configuration file
 	cfg := config.ReadConfig()
 
+	// Initializes logs with corresponding level and formatter
 	logInit(cfg.LogLevel, cfg.LogFormatter)
 
 	// Register request multiplexer
