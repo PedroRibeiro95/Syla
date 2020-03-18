@@ -179,4 +179,17 @@ func (ph *GenericProviderHandler) GetFavoriteArtistsAPI() http.HandlerFunc {
 // ServeHTTP ...
 func (sh *SpotifyAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	sh.Request = r
+
+	log.Debug("Callback request was successful, replying back")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	var reply = "Authorization was successful, you can now use the API"
+	marshalledReply, err := json.Marshal(reply)
+	if err != nil {
+		log.Error("Error marshalling authorization reply")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(marshalledReply)
 }
