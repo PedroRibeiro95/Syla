@@ -20,10 +20,14 @@ func main() {
 	// Register request multiplexer
 	r := mux.NewRouter()
 
+	// Creates Spotify Provider
 	log.Info("Logging has been initialized")
 	spotifyProvider := spotify.New("", "", "http://localhost:8080/auth")
 	log.Debug("Instantiated Spotify Provider")
 
+	// Creates Spotify Handlers
+	// There will be an handler for generic API calls (favorite artists, favorite albums, etc)
+	// and another that will only be used for authorization callbacks
 	spotifyHandler := handler.New(spotifyProvider)
 	spotifyAuthHandler := handler.SpotifyAuthHandler{}
 	log.Debug("Instantiated Spotify Handlers")
@@ -33,12 +37,13 @@ func main() {
 	log.Debug("Registered Spotify authentication handler")
 
 	// Register API handlers
-	r.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
-	r.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
+	r.HandleFunc("/api/spotify/falbums/{limit}/{offset}", spotifyHandler.GetFavoriteAlbumsAPI())
+	r.HandleFunc("/api/spotify/fartists/{limit}/{next}", spotifyHandler.GetFavoriteArtistsAPI())
 	log.Debug("Registered API handlers")
 
 	fmt.Printf("\n\nPlease click the following link to allow Syla to access your Spotify information:\n   %s\n\n", spotifyProvider.URL)
 
+	// Launch Go routine to wait for callback
 	log.Debug("Waiting for Spotify authentication callback")
 	go func() {
 		// Waits for the authentication callback...

@@ -10,6 +10,19 @@ import (
 	"github.com/zmb3/spotify"
 )
 
+// FavoriteArtistsResponse ...
+type FavoriteArtistsResponse struct {
+	Next            string
+	FavoriteArtists []ArtistInformation
+}
+
+// FavoriteAlbumsResponse ...
+type FavoriteAlbumsResponse struct {
+	Limit          int
+	Offset         int
+	FavoriteAlbums []AlbumInformation
+}
+
 // AlbumInformation ...
 type AlbumInformation struct {
 	Name        string
@@ -28,12 +41,12 @@ type ArtistInformation struct {
 }
 
 // MarshalToJSON ...
-func (inf AlbumInformation) MarshalToJSON() ([]byte, error) {
+func (inf FavoriteAlbumsResponse) MarshalToJSON() ([]byte, error) {
 	return provider.MarshalToJSON(inf)
 }
 
 // MarshalToJSON ...
-func (inf ArtistInformation) MarshalToJSON() ([]byte, error) {
+func (inf FavoriteArtistsResponse) MarshalToJSON() ([]byte, error) {
 	return provider.MarshalToJSON(inf)
 }
 
@@ -76,15 +89,18 @@ func (p *Provider) InstantiateClient(r *http.Request) {
 // GetFavoriteAlbums ...
 // TODO verify that the client has been instantiated
 // TODO understand pagination
-func (p *Provider) GetFavoriteAlbums() ([]syla.AlbumInformation, error) {
+func (p *Provider) GetFavoriteAlbums(limit, offset int) (syla.FavoriteAlbumsResponse, error) {
 
-	var favoriteAlbumsResponse []syla.AlbumInformation
+	var favoriteAlbums []AlbumInformation
 
-	albumsList, err := p.Client.CurrentUsersAlbums()
+	albumsList, err := p.Client.CurrentUsersAlbumsOpt(&spotify.Options{
+		Limit:  &limit,
+		Offset: &offset,
+	})
 	if err != nil {
 		log.Error("Oh my god! Error!")
-		fmt.Println(err)
-		return []syla.AlbumInformation{}, nil
+		log.Error(err)
+		return FavoriteAlbumsResponse{}, nil
 	}
 
 	for _, album := range albumsList.Albums {
@@ -101,20 +117,25 @@ func (p *Provider) GetFavoriteAlbums() ([]syla.AlbumInformation, error) {
 		}
 		albumInformation.Artists = artists
 
-		favoriteAlbumsResponse = append(favoriteAlbumsResponse, albumInformation)
+		favoriteAlbums = append(favoriteAlbums, albumInformation)
 	}
 
-	return favoriteAlbumsResponse, nil
+	return FavoriteAlbumsResponse{
+		Limit:          albumsList.Limit,
+		Offset:         albumsList.Offset,
+		FavoriteAlbums: favoriteAlbums,
+	}, nil
 }
 
 // GetFavoriteArtists ...
-func (p *Provider) GetFavoriteArtists() ([]syla.ArtistInformation, error) {
-	var favoriteArtistsResponse []syla.ArtistInformation
+func (p *Provider) GetFavoriteArtists(limit int, next string) (syla.FavoriteArtistsResponse, error) {
+	var favoriteArtists []ArtistInformation
 
-	followedArtists, err := p.Client.CurrentUsersFollowedArtists()
+	followedArtists, err := p.Client.CurrentUsersFollowedArtistsOpt(limit, next)
 	if err != nil {
-		fmt.Println("Oh my god! Error!")
-		return []syla.ArtistInformation{}, nil
+		log.Error("Oh my god! Error!")
+		log.Error(err)
+		return FavoriteArtistsResponse{}, nil
 	}
 
 	for _, artist := range followedArtists.Artists {
@@ -125,8 +146,11 @@ func (p *Provider) GetFavoriteArtists() ([]syla.ArtistInformation, error) {
 			FollowersCount: artist.Followers.Count,
 		}
 
-		favoriteArtistsResponse = append(favoriteArtistsResponse, artistInformation)
+		favoriteArtists = append(favoriteArtists, artistInformation)
 	}
 
-	return favoriteArtistsResponse, nil
+	return FavoriteArtistsResponse{
+		Next:            followedArtists.Next,
+		FavoriteArtists: favoriteArtists,
+	}, nil
 }

@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/PedroRibeiro95/syla"
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -46,14 +48,70 @@ func MarshalToJSON(i interface{}) ([]byte, error) {
 	return jsonMarshalled, nil
 }
 
+func (ph *GenericProviderHandler) getLimitAndOffset(r *http.Request) (int, int, error) {
+	var (
+		limit, offset int64
+		err           error
+	)
+
+	vars := mux.Vars(r)
+
+	limitString := vars["limit"]
+	offsetString := vars["offset"]
+
+	limit, err = strconv.ParseInt(limitString, 10, 0)
+	if err != nil {
+		log.Warn("Error converting limit to integer")
+		return 0, 0, err
+	}
+	offset, err = strconv.ParseInt(offsetString, 10, 0)
+	if err != nil {
+		log.Warn("Error converting offset to integer")
+		return 0, 0, err
+	}
+
+	if limit == 0 {
+		return 20, int(offset), nil
+	}
+
+	return int(limit), int(offset), nil
+
+}
+
 // GetFavoriteAlbumsAPI ...
 func (ph *GenericProviderHandler) GetFavoriteAlbumsAPI() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			limit, offset int64
+			err           error
+			response      syla.FavoriteAlbumsResponse
+		)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		log.Info("Getting request for Favorite Albums")
+
 		//No checks at this point
-		response, err := (*ph.Provider).GetFavoriteAlbums()
+		log.Debug("Getting 'limit' and 'next' for this request")
+		vars := mux.Vars(r)
+
+		limitString := vars["limit"]
+		offsetString := vars["offset"]
+
+		limit, err = strconv.ParseInt(limitString, 10, 64)
+		if err != nil {
+			log.Warn("Error converting limit to integer")
+		}
+		offset, err = strconv.ParseInt(offsetString, 10, 64)
+		if err != nil {
+			log.Warn("Error converting offset to integer")
+		}
+
+		if limit == 0 {
+			response, err = (*ph.Provider).GetFavoriteAlbums(20, int(offset))
+		} else {
+			response, err = (*ph.Provider).GetFavoriteAlbums(int(limit), int(offset))
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -71,11 +129,38 @@ func (ph *GenericProviderHandler) GetFavoriteAlbumsAPI() http.HandlerFunc {
 // GetFavoriteArtistsAPI ...
 func (ph *GenericProviderHandler) GetFavoriteArtistsAPI() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			limit    int64
+			next     string
+			err      error
+			response syla.FavoriteArtistsResponse
+		)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		log.Info("Getting request for Favorite Artists")
+
+		log.Debug("Getting 'limit' and 'next' for this request")
+		vars := mux.Vars(r)
+
+		limitString := vars["limit"]
+		next = vars["next"]
+
+		limit, err = strconv.ParseInt(limitString, 10, 0)
+		if err != nil {
+			log.Warn("Error converting limit to integer")
+		}
+
+		if next == "nil" {
+			next = ""
+		}
+
 		//No checks at this point
-		response, err := (*ph.Provider).GetFavoriteArtists()
+		if limit == 0 {
+			response, err = (*ph.Provider).GetFavoriteArtists(10, next)
+		} else {
+			response, err = (*ph.Provider).GetFavoriteArtists(int(limit), next)
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
