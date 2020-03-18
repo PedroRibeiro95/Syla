@@ -3,6 +3,7 @@ package spotify
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/PedroRibeiro95/syla"
 	"github.com/PedroRibeiro95/syla/pkg/provider"
@@ -126,6 +127,16 @@ func (p *Provider) GetFavoriteAlbums(limit, offset int) (syla.FavoriteAlbumsResp
 	}, nil
 }
 
+func (p *Provider) parseGetFavoriteArtistsNext(next string) string {
+	split := strings.Split(next, "after=")
+	if len(split) < 2 {
+		return ""
+	}
+	split = strings.Split(split[1], "&")
+
+	return split[0]
+}
+
 // GetFavoriteArtists ...
 func (p *Provider) GetFavoriteArtists(limit int, next string) (syla.FavoriteArtistsResponse, error) {
 	var favoriteArtists []ArtistInformation
@@ -148,7 +159,7 @@ func (p *Provider) GetFavoriteArtists(limit int, next string) (syla.FavoriteArti
 	}
 
 	return FavoriteArtistsResponse{
-		Next:            followedArtists.Next,
+		Next:            p.parseGetFavoriteArtistsNext(followedArtists.Next),
 		FavoriteArtists: favoriteArtists,
 	}, nil
 }
