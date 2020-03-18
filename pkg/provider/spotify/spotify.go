@@ -98,8 +98,7 @@ func (p *Provider) GetFavoriteAlbums(limit, offset int) (syla.FavoriteAlbumsResp
 		Offset: &offset,
 	})
 	if err != nil {
-		log.Error("Oh my god! Error!")
-		log.Error(err)
+		log.Error("Error getting current albums")
 		return FavoriteAlbumsResponse{}, nil
 	}
 
@@ -133,8 +132,7 @@ func (p *Provider) GetFavoriteArtists(limit int, next string) (syla.FavoriteArti
 
 	followedArtists, err := p.Client.CurrentUsersFollowedArtistsOpt(limit, next)
 	if err != nil {
-		log.Error("Oh my god! Error!")
-		log.Error(err)
+		log.Error("Error getting current followed artists")
 		return FavoriteArtistsResponse{}, nil
 	}
 
