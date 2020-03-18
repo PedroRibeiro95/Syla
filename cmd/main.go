@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/PedroRibeiro95/syla/internal/handler"
@@ -14,11 +15,13 @@ import (
 )
 
 func main() {
-
 	logInit("debug", "json")
 
+	// Register request multiplexer
+	r := mux.NewRouter()
+
 	log.Info("Logging has been initialized")
-	spotifyProvider := spotify.New("xxx", "xxx", "http://localhost:8080/auth")
+	spotifyProvider := spotify.New("", "", "http://localhost:8080/auth")
 	log.Debug("Instantiated Spotify Provider")
 
 	spotifyHandler := handler.New(spotifyProvider)
@@ -26,12 +29,12 @@ func main() {
 	log.Debug("Instantiated Spotify Handlers")
 
 	// Registers Spotify Authenticator handler
-	http.Handle("/auth", &spotifyAuthHandler)
+	r.Handle("/auth", &spotifyAuthHandler)
 	log.Debug("Registered Spotify authentication handler")
 
 	// Register API handlers
-	http.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
-	http.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
+	r.HandleFunc("/api/spotify/falbums", spotifyHandler.GetFavoriteAlbumsAPI())
+	r.HandleFunc("/api/spotify/fartists", spotifyHandler.GetFavoriteArtistsAPI())
 	log.Debug("Registered API handlers")
 
 	fmt.Printf("\n\nPlease click the following link to allow Syla to access your Spotify information:\n   %s\n\n", spotifyProvider.URL)
@@ -49,7 +52,7 @@ func main() {
 
 	// Listens indefinetly
 	log.Debug("Listening indefinetly on 8080...")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
 func logInit(level, formatter string) error {

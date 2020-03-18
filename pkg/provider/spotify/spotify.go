@@ -87,23 +87,21 @@ func (p *Provider) GetFavoriteAlbums() ([]syla.AlbumInformation, error) {
 		return []syla.AlbumInformation{}, nil
 	}
 
-	for albumsList.Next != "" {
-		for _, album := range albumsList.Albums {
-			albumInformation := AlbumInformation{
-				Name:        album.Name,
-				ReleaseDate: album.ReleaseDate,
-				URLs:        album.ExternalURLs,
-				Genres:      album.Genres,
-			}
-
-			var artists []string
-			for _, artist := range album.Artists {
-				artists = append(artists, artist.Name)
-			}
-			albumInformation.Artists = artists
-
-			favoriteAlbumsResponse = append(favoriteAlbumsResponse, albumInformation)
+	for _, album := range albumsList.Albums {
+		albumInformation := AlbumInformation{
+			Name:        album.Name,
+			ReleaseDate: album.ReleaseDate,
+			URLs:        album.ExternalURLs,
+			Genres:      album.Genres,
 		}
+
+		var artists []string
+		for _, artist := range album.Artists {
+			artists = append(artists, artist.Name)
+		}
+		albumInformation.Artists = artists
+
+		favoriteAlbumsResponse = append(favoriteAlbumsResponse, albumInformation)
 	}
 
 	return favoriteAlbumsResponse, nil
@@ -119,18 +117,15 @@ func (p *Provider) GetFavoriteArtists() ([]syla.ArtistInformation, error) {
 		return []syla.ArtistInformation{}, nil
 	}
 
-	for followedArtists.Next != "" {
-		for _, artist := range followedArtists.Artists {
-			artistInformation := ArtistInformation{
-				Name:           artist.Name,
-				Popularity:     artist.Popularity,
-				Genres:         artist.Genres,
-				FollowersCount: artist.Followers.Count,
-			}
-
-			favoriteArtistsResponse = append(favoriteArtistsResponse, artistInformation)
+	for _, artist := range followedArtists.Artists {
+		artistInformation := ArtistInformation{
+			Name:           artist.Name,
+			Popularity:     artist.Popularity,
+			Genres:         artist.Genres,
+			FollowersCount: artist.Followers.Count,
 		}
 
+		favoriteArtistsResponse = append(favoriteArtistsResponse, artistInformation)
 	}
 
 	return favoriteArtistsResponse, nil
