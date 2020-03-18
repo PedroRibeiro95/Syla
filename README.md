@@ -18,6 +18,8 @@ Well, I think it really boils down to allowing you to control how you share your
   * [ ] Fetching favorite albums
   * [ ] Fetching favorite artists
   * [ ] Fetching favorite songs
+* [ ] Document code
+* [ ] Document API
 * [ ] Refactor code
 * [ ] Implement good abstractions
 * [ ] Fully implement the Apple Music provider
