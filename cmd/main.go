@@ -10,19 +10,22 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 
+	"github.com/PedroRibeiro95/syla/internal/config"
 	"github.com/PedroRibeiro95/syla/internal/handler"
 	"github.com/PedroRibeiro95/syla/pkg/provider/spotify"
 )
 
 func main() {
-	logInit("debug", "json")
+	cfg := config.ReadConfig()
+
+	logInit(cfg.LogLevel, cfg.LogFormatter)
 
 	// Register request multiplexer
 	r := mux.NewRouter()
 
 	// Creates Spotify Provider
 	log.Info("Logging has been initialized")
-	spotifyProvider := spotify.New("", "", "http://localhost:8080/auth")
+	spotifyProvider := spotify.New(cfg.SpotifyConfig.ClientID, cfg.SpotifyConfig.SecretKey, cfg.SpotifyConfig.CallbackURL)
 	log.Debug("Instantiated Spotify Provider")
 
 	// Creates Spotify Handlers
